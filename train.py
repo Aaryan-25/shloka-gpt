@@ -1,7 +1,7 @@
 """
 Train ShlokaGPT on the Bhagavad Gita.
 
-    python train.py            # full run (GPU recommended, ~15-30 min)
+    python train.py            # full run (GPU recommended, a few minutes)
     python train.py --small    # quick CPU run to check everything works
 """
 
@@ -24,7 +24,7 @@ if args.small:
     batch_size, lr, steps = 32, 1e-3, args.steps or 500
 else:
     cfg = dict(block_size=256, n_layer=6, n_head=6, n_embd=384, dropout=0.2)
-    batch_size, lr, steps = 64, 3e-4, args.steps or 5000
+    batch_size, lr, steps = 64, 3e-4, args.steps or 1500
 
 # ---- data: every distinct character becomes a token -------------------------
 text = open(args.data, encoding="utf-8").read()
@@ -59,15 +59,22 @@ model = ShlokaGPT(len(chars), **cfg).to(device)
 print(f"{sum(p.numel() for p in model.parameters()) / 1e6:.2f}M parameters")
 opt = torch.optim.AdamW(model.parameters(), lr=lr)
 
+best_val = float("inf")
 for step in range(steps + 1):
-    if step % max(steps // 10, 1) == 0:
+    if step % max(steps // 20, 1) == 0:
         l = estimate_loss(model)
-        print(f"step {step:5d} | train loss {l['train']:.3f} | val loss {l['val']:.3f}")
+        note = ""
+        # keep the version that does best on verses it has NOT studied;
+        # after that point the model starts memorising instead of learning
+        if l["val"] < best_val:
+            best_val = l["val"]
+            torch.save({"model": model.state_dict(), "cfg": cfg, "chars": chars}, "shloka_gpt.pt")
+            note = "  <- best so far, saved"
+        print(f"step {step:5d} | train loss {l['train']:.3f} | val loss {l['val']:.3f}{note}")
     xb, yb = get_batch(train_data)
     _, loss = model(xb, yb)
     opt.zero_grad(set_to_none=True)
     loss.backward()
     opt.step()
 
-torch.save({"model": model.state_dict(), "cfg": cfg, "chars": chars}, "shloka_gpt.pt")
-print("saved shloka_gpt.pt")
+print(f"done. best val loss {best_val:.3f}, model in shloka_gpt.pt")

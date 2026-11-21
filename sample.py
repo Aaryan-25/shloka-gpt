@@ -6,6 +6,7 @@ Ask the trained model to compose new verses.
 """
 
 import argparse
+import sys
 import torch
 from model import ShlokaGPT
 
@@ -27,4 +28,12 @@ model.eval()
 start = [stoi[c] for c in args.start if c in stoi] or [0]
 idx = torch.tensor([start], dtype=torch.long, device=device)
 out = model.generate(idx, args.length, args.temperature)[0].tolist()
-print("".join(chars[i] for i in out))
+text = "".join(chars[i] for i in out)
+with open("samples.txt", "w", encoding="utf-8") as f:
+    f.write(text)
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    print(text)
+except Exception:
+    pass
+print("\nsaved to samples.txt")
