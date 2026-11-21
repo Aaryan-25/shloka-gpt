@@ -51,24 +51,42 @@ flowchart LR
 
 ---
 
-## 📈 Watching it learn
+## 🪔 Verses composed by the model
 
-Even a **tiny test model** after only **300 training steps** (a few seconds on a laptop CPU) already picks up the *shape* of a Gita verse: Devanagari syllables, the `।` and `।।` verse marks, and verse numbers:
+None of these verses exist in the Gita. They were written character by character by the trained model:
 
 ```text
-नस्रीदि वा द्रते स्यवनै
-त्रैवा ह्यगोक्विन य स्मा।
-पन्त्यहि सि मर्थ तः सत्विं च।7.3।
+अर्जुन उवाच
+क्ष्यमुक्षाणं पात्मनसंशयोर्तगां संजगयम्।
+सृहस्त्वभूता स्वभूतात्ममनः कौन्तेय श्रीप्रलयात्मुपः।।2.28।।
+
+देवादिह्य वाद्योगेश च सर्वति मच्छन्ति चैव योगी त्।
+सच्छामार्थं ते तद्वेषु योगस्वभूयः प्रकृतिष्ठताः।।2.29।।
+
+सोऽहमावीनुप्ति मां तामां निव्यस्य कर्मिदः।
+निर्माणि निराणीन्निर्ते जन्मन्ति मे न प्रलियम्।।2.67।।
 ```
 
-The full-size model trains for much longer and gets far closer to real metre.
+The words are mostly invented, but look at what the model discovered **on its own**, with no grammar rules given:
 
-**What to look for in the output:**
+- ✅ the two-line verse shape, closed with `।` and `।।` and a verse number
+- ✅ speaker lines: `अर्जुन उवाच` ("Arjuna said")
+- ✅ real Gita vocabulary: `कौन्तेय` (Kaunteya), `योगी` (yogi), `कर्म` (karma), `सोऽहम्` (so'ham)
+- ✅ Sanskrit word endings and joins, like `-आत्मनः`, `-ष्ठताः`, `-न्ति`
+- ✅ valid Devanagari syllables and conjunct consonants throughout
 
-- ✅ valid Devanagari syllables and conjunct consonants
-- ✅ verse-ending marks (`।` and `।।`) in the right places
-- ✅ line lengths drifting towards the 8-syllable *anuṣṭubh* rhythm
-- ✅ speaker lines like `श्रीभगवानुवाच` ("the Lord said")
+## 📈 Training: learning vs memorising
+
+With only 700 verses, the biggest challenge was stopping the model from simply **memorising** the Gita.
+
+| Run | Steps | Train loss | Val loss | What happened |
+|---|---|---|---|---|
+| Long run | 5000 | 0.045 | 4.543 | ❌ Memorised the text; got worse on unseen verses after ~500 steps |
+| Final run | 600 | 1.578 | **1.913** | ✅ Learned patterns, best score on unseen verses |
+
+*Train loss* measures verses the model studied; *val loss* measures verses it never saw. When train loss keeps falling but val loss rises, the model is reciting rather than learning. The training script now automatically keeps the checkpoint with the best val loss.
+
+Trained on an NVIDIA GPU in about 15 minutes.
 
 ---
 
@@ -101,6 +119,7 @@ shloka-gpt/
 
 - [x] Character-level GPT built from scratch
 - [x] Training pipeline on the full Bhagavad Gita
+- [x] Detect memorisation and keep the best checkpoint automatically
 - [ ] Compare early vs late training to see *when* metre emerges
 - [ ] Syllable-level tokens instead of characters
 - [ ] Train on more classical texts: Upanishads, Ramayana
