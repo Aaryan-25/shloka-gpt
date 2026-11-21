@@ -2,7 +2,7 @@
 
 # 🪔 shloka-gpt
 
-### *A tiny GPT that learns Sanskrit from the Bhagavad Gita, from scratch*
+### *I built a small AI and taught it Sanskrit using only the Bhagavad Gita*
 
 **धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः।**
 
@@ -11,49 +11,27 @@
 ![Sanskrit](https://img.shields.io/badge/Language-Sanskrit-FF9933?style=for-the-badge)
 ![Verses](https://img.shields.io/badge/Training%20data-700%20verses-138808?style=for-the-badge)
 
+**Built by Aaryan Ahuja**, Master of Hospital Administration, TISS Mumbai
+
 </div>
 
 ---
 
-## ✨ The idea
+## ⏱️ In one minute
 
-> **Can a small neural network, given nothing but the raw text of the Gita, discover the rules of Sanskrit on its own?**
+**ChatGPT** and similar tools are built on a type of AI called a **GPT**. They learn language by reading enormous amounts of text and practising one simple skill: *guessing what comes next*.
 
-No pre-trained model. No grammar rules. No dictionary.
-The model starts knowing nothing, not even what a letter is, and learns purely by reading all **700 verses**, one Devanagari character at a time.
+I wanted to understand how that really works, so I **built a small GPT myself, from scratch**, and gave it just one book to learn from: the **Bhagavad Gita**, in its original Sanskrit.
 
-Sanskrit makes this a fascinating test:
+The AI started knowing **nothing**: no words, no grammar, not even the alphabet. After reading the Gita's 700 verses many times over, it learned to **write new verses of its own** that follow the look and rhythm of the Gita.
 
-| 🔗 **Sandhi** | Words fuse together at their edges, so there are no clean word boundaries to lean on |
-|---|---|
-| 🎼 **Metre** | Verses follow strict rhythms like the *anuṣṭubh*: four quarters of eight syllables |
-| ✍️ **Script** | Devanagari builds syllables from consonants, vowel signs and conjuncts |
+> 💡 **The question behind it:** can a machine discover the rules of an ancient language just by reading, without anyone teaching it grammar?
 
 ---
 
-## 🧠 How it works
+## 🪔 Verses written by the AI
 
-```mermaid
-flowchart LR
-    A["📜 Bhagavad Gita<br/>700 verses"] --> B["🔤 Characters<br/>73 Devanagari symbols"]
-    B --> C["🧠 Transformer<br/>6 layers · ~10M parameters"]
-    C --> D["🔁 Predict the next character<br/>and learn from mistakes"]
-    D --> C
-    C --> E["🪔 Brand-new verses"]
-```
-
-| | |
-|---|---|
-| **Model** | GPT-style Transformer, written from scratch in ~100 lines of plain PyTorch |
-| **Tokens** | Single characters, so the model must discover syllables and words itself |
-| **Data** | ~66,000 characters of the Gita in Devanagari |
-| **Size** | ~10.8 million parameters (6 layers, 6 attention heads) |
-
----
-
-## 🪔 Verses composed by the model
-
-None of these verses exist in the Gita. They were written character by character by the trained model:
+None of these verses exist in the Gita. The AI composed them itself, one letter at a time:
 
 ```text
 अर्जुन उवाच
@@ -67,40 +45,77 @@ None of these verses exist in the Gita. They were written character by character
 निर्माणि निराणीन्निर्ते जन्मन्ति मे न प्रलियम्।।2.67।।
 ```
 
-The words are mostly invented, but look at what the model discovered **on its own**, with no grammar rules given:
+Most of the words are invented, so the verses don't have a meaning. That's expected for a small AI trained on one book. What's remarkable is **what it figured out by itself**:
 
-- ✅ the two-line verse shape, closed with `।` and `।।` and a verse number
-- ✅ speaker lines: `अर्जुन उवाच` ("Arjuna said")
-- ✅ real Gita vocabulary: `कौन्तेय` (Kaunteya), `योगी` (yogi), `कर्म` (karma), `सोऽहम्` (so'ham)
-- ✅ Sanskrit word endings and joins, like `-आत्मनः`, `-ष्ठताः`, `-न्ति`
-- ✅ valid Devanagari syllables and conjunct consonants throughout
+| What the AI learned on its own | Example from its verses |
+|---|---|
+| 📜 A verse has two lines and ends with `।।` and a verse number | `...प्रकृतिष्ठताः।।2.29।।` |
+| 🗣️ Verses can begin with who is speaking | `अर्जुन उवाच`: "Arjuna said" |
+| 📖 Real words from the Gita | `कौन्तेय` (Kaunteya), `योगी` (yogi), `कर्म` (karma), `सोऽहम्` (so'ham) |
+| ✍️ How Sanskrit letters combine into syllables | joined letters like `ष्ठ`, `न्ति`, `त्म` |
 
-## 📈 Training: learning vs memorising
-
-With only 700 verses, the biggest challenge was stopping the model from simply **memorising** the Gita.
-
-| Run | Steps | Train loss | Val loss | What happened |
-|---|---|---|---|---|
-| Long run | 5000 | 0.045 | 4.543 | ❌ Memorised the text; got worse on unseen verses after ~500 steps |
-| Final run | 600 | 1.578 | **1.913** | ✅ Learned patterns, best score on unseen verses |
-
-*Train loss* measures verses the model studied; *val loss* measures verses it never saw. When train loss keeps falling but val loss rises, the model is reciting rather than learning. The training script now automatically keeps the checkpoint with the best val loss.
-
-Trained on an NVIDIA GPU in about 15 minutes.
+Nobody told it any of these rules. It discovered them purely from patterns in the text.
 
 ---
 
-## 🚀 Run it yourself
+## 🧠 How it works, in plain words
+
+```mermaid
+flowchart LR
+    A["📜 Read the Gita<br/>700 verses"] --> B["🤔 Guess the<br/>next letter"]
+    B --> C["✅ Check the answer<br/>and improve"]
+    C --> B
+    C --> D["🪔 Write new verses"]
+```
+
+1. **Reading:** the AI sees the Gita as a long string of Sanskrit letters, about 66,000 of them.
+2. **Guessing:** again and again, it looks at some text and guesses the next letter.
+3. **Improving:** each time it is wrong, it adjusts itself slightly. Over thousands of rounds its guesses get better.
+4. **Writing:** once trained, it keeps guessing "the next letter" on its own, which produces brand-new verses.
+
+This is the same basic idea behind ChatGPT, just millions of times smaller.
+
+---
+
+## 📈 The most interesting finding: learning vs memorising
+
+With only one book to read, there was a real risk the AI would simply **learn the Gita by heart** instead of learning how Sanskrit works, like a student who memorises answers without understanding the subject.
+
+To check, I kept some verses hidden from the AI during training and tested it on them (a lower score means better):
+
+| Training run | Score on verses it studied | Score on verses it never saw | Result |
+|---|---|---|---|
+| Long (5000 rounds) | 0.05 | 4.54 | ❌ Memorised the book; got worse at new verses |
+| Short (600 rounds) | 1.58 | **1.91** | ✅ Learned real patterns |
+
+The longer run looked "perfect" on what it had studied, but it was only reciting. **Stopping at the right moment** gave an AI that actually learned. The training code now detects this automatically and keeps the best version.
+
+> 🏥 **Why this matters beyond Sanskrit:** the same check, *does the AI work on cases it has never seen?*, is how AI tools in healthcare should be judged before anyone relies on them, whether they read X-rays or predict bed demand.
+
+---
+
+## 🛠️ For technical readers
+
+<details>
+<summary><b>Model details, code and how to run it</b></summary>
+
+<br/>
+
+| | |
+|---|---|
+| **Model** | GPT-style decoder-only Transformer, written from scratch in plain PyTorch (~100 lines in [`model.py`](model.py)) |
+| **Size** | ~10.8M parameters: 6 layers, 6 attention heads, 384-dim embeddings, 256-character context |
+| **Tokens** | Character-level: 73 unique Devanagari symbols |
+| **Data** | Full Bhagavad Gita, ~66,000 characters, 90/10 train/validation split |
+| **Training** | AdamW, lr 3e-4, batch 64, dropout 0.2; best-validation checkpointing |
+| **Hardware** | Single NVIDIA GPU, ~15 minutes |
 
 ```bash
 pip install torch
-python train.py            # full training (NVIDIA GPU recommended)
+python train.py            # train (NVIDIA GPU recommended)
 python train.py --small    # quick test on any laptop CPU
-python sample.py           # compose new verses
+python sample.py           # compose new verses → samples.txt
 ```
-
-<details>
-<summary><b>📁 Project structure</b></summary>
 
 ```
 shloka-gpt/
@@ -115,25 +130,25 @@ shloka-gpt/
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ What's next
 
-- [x] Character-level GPT built from scratch
-- [x] Training pipeline on the full Bhagavad Gita
-- [x] Detect memorisation and keep the best checkpoint automatically
-- [ ] Compare early vs late training to see *when* metre emerges
-- [ ] Syllable-level tokens instead of characters
+- [x] Build a GPT from scratch
+- [x] Train it on the full Bhagavad Gita
+- [x] Detect memorisation and keep the best version automatically
+- [ ] Track *when* during training the verse rhythm appears
+- [ ] Teach it whole syllables instead of single letters
 - [ ] Train on more classical texts: Upanishads, Ramayana
 
 ---
 
 ## 🙏 Credits
 
-- Verse text from the public-domain [gita/gita](https://github.com/gita/gita) dataset
+- Gita text from the public-domain [gita/gita](https://github.com/gita/gita) dataset
 - Model design inspired by Andrej Karpathy's educational GPT implementations
 
 <div align="center">
 
 **कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ॥**
-*"Your right is to the work alone, never to its fruits." (2.47)*
+*"Your right is to the work alone, never to its fruits." (Gita 2.47)*
 
 </div>
